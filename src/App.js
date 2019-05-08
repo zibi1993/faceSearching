@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import Particles from 'react-particles-js';
-import Clarifai from 'clarifai';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition';
 import Navigation from './components/Navigation/Navigation';
 import Signin from './components/Signin/Signin';
@@ -12,9 +11,7 @@ import Ranks from './components/Ranks/Ranks';
 import './App.css';
 
 
-const app = new Clarifai.App({
-  apiKey: '7c834bb02f7b46cb9f959c4abcea3237'
- });
+
 const particleOptions = {
       particles: {
         number: {
@@ -41,25 +38,26 @@ const particleOptions = {
       }
     }
 
-       
+const initalState = {
+  
+    input: '',
+    imgUrl: '',
+    box: {},
+    route: 'signin',
+    isSignedIn: false,
+    user: {
+      id: '',
+      name: '',
+      email: '',
+      entries: 0,
+      joined: ''
+    }
+}       
     
 class App extends Component {
   constructor(){
     super();
-    this.state = {
-      input: '',
-      imgUrl: '',
-      box: {},
-      route: 'signin',
-      isSignedIn: false,
-      user: {
-        id: '',
-        name: '',
-        email: '',
-        entries: 0,
-        joined: ''
-      }
-    } 
+    this.state = initalState 
   }
 
   loadUser = (data) =>{
@@ -95,10 +93,14 @@ class App extends Component {
   }
   onPictureSubmit = () =>{
     this.setState({imgUrl: this.state.input})
-    app.models
-    .predict(
-       Clarifai.FACE_DETECT_MODEL,
-      this.state.input)
+    fetch('http://localhost:3000/imageurl', {
+              method: 'post',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({
+              input: this.state.input
+          })
+        })
+     .then(response =>response.json())
      .then(response => {
       if (response){
         fetch('http://localhost:3000/image', {
@@ -119,8 +121,8 @@ class App extends Component {
   }
 
   onRouteChange = (route) =>{
-    if ( route === 'signout'){
-      this.setState({isSignedIn: false})
+    if ( route === 'signout'){ 
+      this.setState(initalState)
     }else if ( route === 'home'){
       this.setState({isSignedIn: true})
     }
